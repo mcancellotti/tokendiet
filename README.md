@@ -48,6 +48,33 @@ To do it by hand instead, drop `tokendiet.py` anywhere and add:
 
 Requires Python 3.8+. No dependencies.
 
+### Windows
+
+`install.sh` needs bash, so from `cmd` or PowerShell do it by hand:
+
+```
+curl -o "%USERPROFILE%\.claude\tokendiet.py" https://raw.githubusercontent.com/mcancellotti/tokendiet/main/tokendiet.py
+```
+
+Then add this to `%USERPROFILE%\.claude\settings.json`, with your own username
+in the path:
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "python C:/Users/YOU/.claude/tokendiet.py",
+    "padding": 0
+  }
+}
+```
+
+Two Windows details worth knowing. Use `python` or `py`, not `python3`: on
+Windows `python3` is usually the Microsoft Store alias, which opens the Store
+rather than running anything. And write the path with forward slashes — inside
+JSON a backslash starts an escape sequence, so `C:\Users\...` would have to be
+doubled to survive.
+
 ## Why context, and not verbosity
 
 Every turn re-sends the entire accumulated context. A session that has grown to

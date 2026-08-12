@@ -15,6 +15,14 @@ import sys
 WARN = int(os.environ.get("TOKENDIET_WARN", 150_000))
 HIGH = int(os.environ.get("TOKENDIET_HIGH", 350_000))
 
+# On Windows, stdout to a pipe uses the locale codepage (cp1252 and friends),
+# which has no bar glyphs. Printing one would raise UnicodeEncodeError and the
+# statusline would just come out empty, with nowhere to see the error.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except (AttributeError, ValueError):
+    pass
+
 if os.environ.get("NO_COLOR"):
     RESET = DIM = GREEN = YELLOW = RED = BLUE = ""
 else:

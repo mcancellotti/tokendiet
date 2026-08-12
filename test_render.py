@@ -80,6 +80,12 @@ check("fallback (325K)", {
 check("env      (185K, WARN=200K)", payload(18.5),
       expect=["185K/1.0M"], absent=["/clear"], TOKENDIET_WARN="200000")
 
+# Windows: stdout to a pipe uses the locale codepage, which has no bar glyphs.
+# Without the reconfigure in tokendiet.py this raises UnicodeEncodeError and the
+# bar silently comes out empty.
+check("codepage (cp1252 stdout)", payload(18.5),
+      expect=["185K/1.0M", "█", "◐"], PYTHONIOENCODING="cp1252")
+
 # A payload missing everything must not crash or print junk.
 check("sparse   (no context)", {"model": {"display_name": "Opus 5"}},
       expect=["Opus 5"], absent=["/clear", "░"])
