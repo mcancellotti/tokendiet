@@ -25,7 +25,7 @@ directory, git branch (`*` when dirty), context bar, live session cost.
 ```sh
 git clone https://github.com/mcancellotti/tokendiet
 cd tokendiet
-./install.sh
+python3 install.py     # on Windows: python install.py
 ```
 
 The installer copies `tokendiet.py` into `~/.claude/` and sets the `statusLine`
@@ -50,10 +50,12 @@ Requires Python 3.8+. No dependencies.
 
 ### Windows
 
-`install.sh` needs bash, so from `cmd` or PowerShell do it by hand:
+`python install.py` works the same from `cmd` or PowerShell. If you'd rather
+not clone the repo, fetch the script and wire it up by hand — from PowerShell:
 
-```
-curl -o "%USERPROFILE%\.claude\tokendiet.py" https://raw.githubusercontent.com/mcancellotti/tokendiet/main/tokendiet.py
+```powershell
+New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude" | Out-Null
+Invoke-WebRequest -UseBasicParsing https://raw.githubusercontent.com/mcancellotti/tokendiet/main/tokendiet.py -OutFile "$env:USERPROFILE\.claude\tokendiet.py"
 ```
 
 Then add this to `%USERPROFILE%\.claude\settings.json`, with your own username
@@ -69,11 +71,13 @@ in the path:
 }
 ```
 
-Two Windows details worth knowing. Use `python` or `py`, not `python3`: on
-Windows `python3` is usually the Microsoft Store alias, which opens the Store
-rather than running anything. And write the path with forward slashes — inside
-JSON a backslash starts an escape sequence, so `C:\Users\...` would have to be
-doubled to survive.
+Three Windows details worth knowing. That file is `settings.json` **inside**
+the `.claude` folder — not the `.claude.json` sitting next to it, which holds
+your MCP servers and is never checked for a statusline. Use `python` or `py`,
+not `python3`: on Windows `python3` is usually the Microsoft Store alias, which
+opens the Store rather than running anything. And write the path with forward
+slashes — inside JSON a backslash starts an escape sequence, so `C:\Users\...`
+would have to be doubled to survive.
 
 ## Why context, and not verbosity
 
