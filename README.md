@@ -4,7 +4,8 @@ A Claude Code statusline that shows what your session is actually costing —
 and tells you when to `/clear`.
 
 The diet is on **context**, not on your prose. Shorter answers save almost
-nothing; long sessions are what get expensive. See [Why](#why-context-and-not-verbosity).
+nothing; long sessions are what get expensive. See [Why](#why-context-and-not-verbosity),
+or the short version at **[mcancellotti.github.io/tokendiet](https://mcancellotti.github.io/tokendiet)**.
 
 ![A session filling up: the context bar climbs from 12K to 620K tokens, turning green, yellow, then red](demo.svg)
 

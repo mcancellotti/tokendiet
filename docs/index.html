@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tokendiet — see what your Claude Code session costs</title>
+<meta name="description" content="A Claude Code statusline showing absolute context, live session cost, and when to /clear. Drawn by your terminal, so it costs zero tokens to run.">
+<meta property="og:title" content="tokendiet">
+<meta property="og:description" content="A Claude Code statusline showing absolute context, live session cost, and when to /clear. It costs zero tokens to run.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%230f1116'/><rect x='2' y='7' width='5' height='2' fill='%233fb950'/><rect x='8' y='7' width='6' height='2' fill='%232a2f3a'/></svg>">
+<style>
+  /* One deliberate visual world: a terminal at night. No theme switch —
+     every colour is painted explicitly so the page holds on any ground. */
+  :root {
+    --bg: #0f1116;
+    --panel: #16181d;
+    --sunk: #1b1e25;
+    --rule: #262b35;
+    --ink: #c9d1da;
+    --bright: #eef2f7;
+    --muted: #8b94a3;
+    --faint: #656e7d;
+    --accent: #dd9d4d;
+    --ok: #3fb950;
+    --warn: #d29922;
+    --crit: #f85149;
+    --mono: ui-monospace, SFMono-Regular, "DejaVu Sans Mono", Menlo, Consolas, monospace;
+    --serif: Charter, "Bitstream Charter", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.65;
+    padding: 0 20px 100px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 68px; }
+  p { max-width: 62ch; text-wrap: pretty; }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:hover { color: var(--bright); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  header { padding-top: 80px; display: flex; flex-direction: column; gap: 18px; }
+  h1 {
+    font-family: var(--mono);
+    font-size: clamp(40px, 9vw, 66px);
+    font-weight: 600;
+    letter-spacing: -0.045em;
+    line-height: 1;
+    color: var(--bright);
+  }
+  h1 .cursor {
+    display: inline-block;
+    width: 0.5em; height: 0.86em;
+    background: var(--ok);
+    margin-left: 0.12em;
+    vertical-align: baseline;
+    animation: blink 1.2s steps(1) infinite;
+  }
+  @keyframes blink { 0%, 49% { opacity: 1 } 50%, 100% { opacity: 0 } }
+  .lede { font-size: 21px; color: var(--muted); }
+  .lede strong { color: var(--ink); font-weight: 600; }
+
+  h2 {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--bright);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 24px;
+  }
+  section > p + p { margin-top: 16px; }
+
+  /* -- hero demo -- */
+  .demo-frame { background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 8px; overflow-x: auto; }
+  .demo { display: block; min-width: 700px; width: 100%; height: auto; }
+  .demo-note { font-size: 14px; color: var(--faint); margin-top: 10px; }
+
+  /* -- install -- */
+  .install { display: flex; flex-direction: column; gap: 10px; }
+  .cmd {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: var(--sunk); border: 1px solid var(--rule); border-radius: 9px;
+    padding: 16px 16px 16px 18px;
+  }
+  .cmd pre { font-family: var(--mono); font-size: 14px; line-height: 1.8; color: var(--ink); flex: 1; overflow-x: auto; }
+  .cmd .p { color: var(--faint); user-select: none; }
+  button {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); background: transparent; border: 1px solid var(--rule);
+    border-radius: 5px; padding: 6px 11px; cursor: pointer;
+    transition: color 0.13s ease, border-color 0.13s ease;
+  }
+  button:hover { color: var(--accent); border-color: var(--accent); }
+  .req { font-size: 14px; color: var(--faint); }
+
+  /* -- the three figures -- */
+  .figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+  .fig { background: var(--panel); padding: 20px; display: flex; flex-direction: column; gap: 4px; }
+  .fig b { font-family: var(--mono); font-size: 28px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--bright); }
+  .fig span { font-size: 14px; line-height: 1.5; color: var(--muted); }
+
+  /* -- the meter comparison: the page's one real diagram -- */
+  .meters { display: flex; flex-direction: column; gap: 26px; margin-top: 28px; }
+  .meter { display: flex; flex-direction: column; gap: 9px; }
+  .meter .lbl { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
+  .row { display: flex; align-items: center; gap: 14px; font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .row .who { width: 62px; color: var(--muted); flex: none; }
+  .track { flex: 1; height: 15px; background: var(--sunk); border-radius: 3px; overflow: hidden; min-width: 80px; }
+  .fill { height: 100%; border-radius: 3px; }
+  .row .val { width: 96px; text-align: right; color: var(--ink); flex: none; }
+  .meter .read { font-size: 15px; color: var(--muted); font-family: var(--serif); }
+  .read em { color: var(--ink); font-style: normal; }
+
+  /* -- config table -- */
+  .tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .tbl th, .tbl td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .tbl th { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); font-weight: 400; }
+  .tbl td:first-child, .tbl td:nth-child(2) { font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+  .tbl td:first-child { color: var(--accent); }
+  .tbl td:nth-child(2) { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .tbl td:last-child { color: var(--muted); }
+  .scroll { overflow-x: auto; }
+
+  footer { border-top: 1px solid var(--rule); padding-top: 22px; display: flex; flex-wrap: wrap; gap: 8px 22px; font-family: var(--mono); font-size: 12px; color: var(--faint); }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">A Claude Code statusline</div>
+    <h1>tokendiet<span class="cursor" aria-hidden="true"></span></h1>
+    <p class="lede">Your session's context is what you pay for, on <strong>every single turn</strong>. This puts the number where you'll see it — and tells you when to <strong>/clear</strong>.</p>
+  </header>
+
+  <section aria-label="Demo">
+    <div class="demo-frame">
+      <svg class="demo" xmlns="http://www.w3.org/2000/svg" width="800" height="152" viewBox="0 0 800 152" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" role="img" aria-label="A statusline filling up over a session: the context bar grows from 12K to 620K tokens and turns from green to yellow to red, prompting a /clear that resets it.">
+        <style>
+          .demo .f { opacity: 0; animation: tdshow 12s infinite; }
+          .demo .f0 { animation-delay: 0s } .demo .f1 { animation-delay: 2s } .demo .f2 { animation-delay: 4s }
+          .demo .f3 { animation-delay: 6s } .demo .f4 { animation-delay: 8s } .demo .f5 { animation-delay: 10s }
+          @keyframes tdshow { 0% { opacity: 1 } 16.66% { opacity: 1 } 16.67% { opacity: 0 } 100% { opacity: 0 } }
+          @media (prefers-reduced-motion: reduce) { .demo .f { animation: none; opacity: 0 } .demo .f4 { opacity: 1 } }
+          .demo text { font-size: 13px }
+          .demo .d-dim { fill: #6b7280 } .demo .d-txt { fill: #c0c6d4 } .demo .d-model { fill: #7aa2f7 }
+          .demo .d-green { fill: #3fb950 } .demo .d-yellow { fill: #d29922 } .demo .d-red { fill: #f85149 }
+          .demo .d-cap { font-size: 12px; fill: #6b7280; font-style: italic }
+        </style>
+        <rect x="0.5" y="0.5" width="799" height="151" rx="10" fill="#16181d" stroke="#2a2f3a"/>
+        <circle cx="24" cy="22" r="5.5" fill="#ff5f57"/><circle cx="44" cy="22" r="5.5" fill="#febc2e"/><circle cx="64" cy="22" r="5.5" fill="#28c840"/>
+        <text x="88" y="26" class="d-dim" font-size="11">claude code</text>
+        <line x1="1" y1="43" x2="799" y2="43" stroke="#2a2f3a"/>
+        <g class="f f0"><text x="24" y="86" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/erpilot</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-green">░░░░░░░░░░</tspan><tspan class="d-txt"> 12K/1.0M</tspan><tspan class="d-dim"> · $0.18</tspan></text><text x="24" y="115" class="d-cap" xml:space="preserve">a fresh session — context is cheap here</text></g>
+        <g class="f f1"><text x="24" y="86" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/erpilot</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-green">█░░░░░░░░░</tspan><tspan class="d-txt"> 104K/1.0M</tspan><tspan class="d-dim"> · $1.90</tspan></text><text x="24" y="115" class="d-cap" xml:space="preserve">every turn re-sends everything before it</text></g>
+        <g class="f f2"><text x="24" y="86" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/erpilot</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-yellow">█░░░░░░░░░</tspan><tspan class="d-txt"> 185K/1.0M</tspan><tspan class="d-dim"> · $3.42 · </tspan><tspan class="d-yellow">◐ /clear when this task ends</tspan></text><text x="24" y="115" class="d-cap" xml:space="preserve">150K — still only 18% of the window, already the yellow zone</text></g>
+        <g class="f f3"><text x="24" y="86" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/erpilot</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-yellow">███░░░░░░░</tspan><tspan class="d-txt"> 340K/1.0M</tspan><tspan class="d-dim"> · $9.10 · </tspan><tspan class="d-yellow">◐ /clear when this task ends</tspan></text><text x="24" y="115" class="d-cap" xml:space="preserve">every question now re-pays 340K tokens, however small the answer</text></g>
+        <g class="f f4"><text x="24" y="86" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/erpilot</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-red">██████░░░░</tspan><tspan class="d-txt"> 620K/1.0M</tspan><tspan class="d-dim"> · $18.40 · </tspan><tspan class="d-red">⚠ /clear</tspan></text><text x="24" y="115" class="d-cap" xml:space="preserve">"half full" by the percentage — 3x the cost per turn</text></g>
+        <g class="f f5"><text x="24" y="86" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/erpilot</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-green">░░░░░░░░░░</tspan><tspan class="d-txt"> 6K/1.0M</tspan><tspan class="d-dim"> · $0.04</tspan></text><text x="24" y="115" class="d-cap" xml:space="preserve">/clear — back to paying only for what this task needs</text></g>
+      </svg>
+    </div>
+    <p class="demo-note">One session, start to finish. Green under 150K tokens, yellow past it, red past 350K.</p>
+  </section>
+
+  <section class="install" aria-label="Install">
+    <h2>Install</h2>
+    <div class="cmd">
+      <pre id="cmd"><span class="p">$</span> git clone https://github.com/mcancellotti/tokendiet
+<span class="p">$</span> cd tokendiet && ./install.sh</pre>
+      <button type="button" id="copy">Copy</button>
+    </div>
+    <p class="req">Copies the script into <code>~/.claude/</code> and sets the <code>statusLine</code> block in <code>settings.json</code>, leaving the rest of your settings alone — with a backup next to it. Python 3.8+, no dependencies, MIT.</p>
+  </section>
+
+  <section>
+    <h2>You are not paying for the answer</h2>
+    <p>I tried to cut my own bill the obvious way: asking for shorter replies. Then I measured my five largest sessions. Output was about a tenth of the spend, and only a quarter of that was prose. I had been optimizing roughly 1.5% of the bill.</p>
+    <div class="figs" style="margin-top: 26px;">
+      <div class="fig"><b style="color:var(--crit)">66%</b><span>cache reads — re-sending what the session already holds</span></div>
+      <div class="fig"><b style="color:var(--warn)">24%</b><span>cache writes</span></div>
+      <div class="fig"><b style="color:var(--ok)">10%</b><span>output — a quarter of it prose, the rest tool calls</span></div>
+    </div>
+    <p style="margin-top: 26px;">The driver is session length, not verbosity. Every turn re-sends the accumulated context, so a session that has grown to 500K tokens pays for 500K on every turn, whether the answer is three words or three pages. Cost grows quadratically with how long you stay. The lever is knowing when to clear.</p>
+  </section>
+
+  <section>
+    <h2>Percent of window is the wrong meter</h2>
+    <p>Most context meters show how full the window is. That number is real, but it isn't the one attached to your card. Here is the same 500K session, read both ways.</p>
+    <div class="meters">
+      <div class="meter">
+        <span class="lbl">What the window meter shows</span>
+        <div class="row">
+          <span class="who">500K</span>
+          <span class="track"><span class="fill" style="width:50%; background:var(--ok)"></span></span>
+          <span class="val">50% full</span>
+        </div>
+        <p class="read">Reads as <em>plenty of room left</em>. Nothing here suggests you should stop.</p>
+      </div>
+      <div class="meter">
+        <span class="lbl">What each turn actually costs</span>
+        <div class="row">
+          <span class="who">200K</span>
+          <span class="track"><span class="fill" style="width:40%; background:var(--warn)"></span></span>
+          <span class="val">1.0×</span>
+        </div>
+        <div class="row">
+          <span class="who">500K</span>
+          <span class="track"><span class="fill" style="width:100%; background:var(--crit)"></span></span>
+          <span class="val">2.5×</span>
+        </div>
+        <p class="read">Same session. Every question you ask from here costs <em>two and a half times</em> what it cost at 200K — until you clear.</p>
+      </div>
+    </div>
+    <p style="margin-top: 26px;">So the colours key off absolute token counts, not percentages: yellow at 150K, red at 350K. The bar still fills relative to the window, because knowing how much room is left is useful too. It just isn't what determines the bill.</p>
+  </section>
+
+  <section>
+    <h2>It costs nothing to run</h2>
+    <p>A statusline is drawn by your terminal. It never enters the conversation, so watching your spend does not add to it.</p>
+    <p>The alternative would be a hook injecting a warning into the context on every prompt — paying for that warning in input tokens each turn, out of exactly the budget it exists to protect. And no automation can run <code>/clear</code> for you: it's a harness command, not something a hook or a skill can invoke. Whatever you build, a human makes the call. The job is to put the number in front of that human as cheaply as possible.</p>
+  </section>
+
+  <section>
+    <h2>Configuration</h2>
+    <div class="scroll">
+      <table class="tbl">
+        <thead><tr><th>Variable</th><th>Default</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td>TOKENDIET_WARN</td><td>150000</td><td>Tokens at which the bar turns yellow</td></tr>
+          <tr><td>TOKENDIET_HIGH</td><td>350000</td><td>Tokens at which it turns red</td></tr>
+          <tr><td>NO_COLOR</td><td>unset</td><td>Set to anything to drop the colour</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <span>MIT</span>
+    <a href="https://github.com/mcancellotti/tokendiet">Source on GitHub</a>
+    <a href="https://github.com/mcancellotti/tokendiet/issues">Issues</a>
+    <span>No network calls, no telemetry</span>
+  </footer>
+</div>
+
+<script>
+  document.getElementById("copy").addEventListener("click", function () {
+    var btn = this;
+    var text = document.getElementById("cmd").textContent
+      .split("\n").map(function (l) { return l.replace(/^\$\s?/, ""); }).join("\n").trim();
+    navigator.clipboard.writeText(text).then(function () {
+      btn.textContent = "Copied";
+      setTimeout(function () { btn.textContent = "Copy"; }, 1600);
+    }, function () {
+      btn.textContent = "Ctrl+C";
+      setTimeout(function () { btn.textContent = "Copy"; }, 2000);
+    });
+  });
+</script>
+</body>
+</html>
