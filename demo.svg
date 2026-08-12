@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="152" viewBox="0 0 800 152" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" role="img" aria-label="A Claude Code statusline filling up over a session: the context bar grows from 12K to 620K tokens and turns from green to yellow to red, prompting a /clear.">
+  <style>
+    .f { opacity: 0; animation: show 12s infinite; }
+    .f0 { animation-delay: 0s }
+    .f1 { animation-delay: 2s }
+    .f2 { animation-delay: 4s }
+    .f3 { animation-delay: 6s }
+    .f4 { animation-delay: 8s }
+    .f5 { animation-delay: 10s }
+    @keyframes show {
+      0%      { opacity: 1 }
+      16.66%  { opacity: 1 }
+      16.67%  { opacity: 0 }
+      100%    { opacity: 0 }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .f { animation: none; opacity: 0 }
+      .f4 { opacity: 1 }
+    }
+    text { font-size: 13px }
+    .dim { fill: #6b7280 }
+    .txt { fill: #c0c6d4 }
+    .model { fill: #7aa2f7 }
+    .green { fill: #3fb950 }
+    .yellow { fill: #d29922 }
+    .red { fill: #f85149 }
+    .cap { font-size: 12px; fill: #6b7280; font-style: italic }
+  </style>
+
+  <rect x="0.5" y="0.5" width="799" height="151" rx="10" fill="#16181d" stroke="#2a2f3a"/>
+  <circle cx="24" cy="22" r="5.5" fill="#ff5f57"/>
+  <circle cx="44" cy="22" r="5.5" fill="#febc2e"/>
+  <circle cx="64" cy="22" r="5.5" fill="#28c840"/>
+  <text x="88" y="26" class="dim" font-size="11">claude code</text>
+  <line x1="1" y1="43" x2="799" y2="43" stroke="#2a2f3a"/>
+
+  <g class="f f0"><text x="24" y="86" xml:space="preserve"><tspan class="model">Opus 5</tspan><tspan class="dim"> · </tspan><tspan class="txt">~/erpilot</tspan><tspan class="dim"> · main* · </tspan><tspan class="green">░░░░░░░░░░</tspan><tspan class="txt"> 12K/1.0M</tspan><tspan class="dim"> · $0.18</tspan></text><text x="24" y="115" class="cap" xml:space="preserve">a fresh session — context is cheap here</text></g>
+
+  <g class="f f1"><text x="24" y="86" xml:space="preserve"><tspan class="model">Opus 5</tspan><tspan class="dim"> · </tspan><tspan class="txt">~/erpilot</tspan><tspan class="dim"> · main* · </tspan><tspan class="green">█░░░░░░░░░</tspan><tspan class="txt"> 104K/1.0M</tspan><tspan class="dim"> · $1.90</tspan></text><text x="24" y="115" class="cap" xml:space="preserve">every turn re-sends everything before it</text></g>
+
+  <g class="f f2"><text x="24" y="86" xml:space="preserve"><tspan class="model">Opus 5</tspan><tspan class="dim"> · </tspan><tspan class="txt">~/erpilot</tspan><tspan class="dim"> · main* · </tspan><tspan class="yellow">█░░░░░░░░░</tspan><tspan class="txt"> 185K/1.0M</tspan><tspan class="dim"> · $3.42 · </tspan><tspan class="yellow">◐ /clear when this task ends</tspan></text><text x="24" y="115" class="cap" xml:space="preserve">150K — still only 18% of the window, already the yellow zone</text></g>
+
+  <g class="f f3"><text x="24" y="86" xml:space="preserve"><tspan class="model">Opus 5</tspan><tspan class="dim"> · </tspan><tspan class="txt">~/erpilot</tspan><tspan class="dim"> · main* · </tspan><tspan class="yellow">███░░░░░░░</tspan><tspan class="txt"> 340K/1.0M</tspan><tspan class="dim"> · $9.10 · </tspan><tspan class="yellow">◐ /clear when this task ends</tspan></text><text x="24" y="115" class="cap" xml:space="preserve">every question now re-pays 340K tokens, however small the answer</text></g>
+
+  <g class="f f4"><text x="24" y="86" xml:space="preserve"><tspan class="model">Opus 5</tspan><tspan class="dim"> · </tspan><tspan class="txt">~/erpilot</tspan><tspan class="dim"> · main* · </tspan><tspan class="red">██████░░░░</tspan><tspan class="txt"> 620K/1.0M</tspan><tspan class="dim"> · $18.40 · </tspan><tspan class="red">⚠ /clear</tspan></text><text x="24" y="115" class="cap" xml:space="preserve">"half full" by the percentage — 3x the cost per turn</text></g>
+
+  <g class="f f5"><text x="24" y="86" xml:space="preserve"><tspan class="model">Opus 5</tspan><tspan class="dim"> · </tspan><tspan class="txt">~/erpilot</tspan><tspan class="dim"> · main* · </tspan><tspan class="green">░░░░░░░░░░</tspan><tspan class="txt"> 6K/1.0M</tspan><tspan class="dim"> · $0.04</tspan></text><text x="24" y="115" class="cap" xml:space="preserve">/clear — back to paying only for what this task needs</text></g>
+</svg>

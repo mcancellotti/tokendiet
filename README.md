@@ -6,6 +6,10 @@ and tells you when to `/clear`.
 The diet is on **context**, not on your prose. Shorter answers save almost
 nothing; long sessions are what get expensive. See [Why](#why-context-and-not-verbosity).
 
+![A session filling up: the context bar climbs from 12K to 620K tokens, turning green, yellow, then red](demo.svg)
+
+In plain text, the three states:
+
 ```
 Opus 5 · ~/erpilot · main* · ░░░░░░░░░░ 40K/1.0M · $0.62
 Opus 5 · ~/erpilot · main* · █░░░░░░░░░ 185K/1.0M · $3.42 · ◐ /clear when this task ends
