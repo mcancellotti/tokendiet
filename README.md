@@ -20,6 +20,28 @@ Opus 5 · ~/myproject · main* · ██████░░░░ 620K/1.0M · $1
 Green under 150K tokens, yellow past it, red past 350K. Model, working
 directory, git branch (`*` when dirty), context bar, live session cost.
 
+## What the turn you just took cost
+
+The second line reports the turn that has just finished, and sets it against
+the first turn of the session:
+
+```
+Opus 5 · ~/myproject · main* · ██████░░░░ 620K/1.0M · $18.40 · ⚠ /clear
+turn +160K · $1.40 · 6.7× vs first turn · 1h34m
+```
+
+None of that is modelled or estimated. A turn's cost is the difference between
+two readings of the session total, and the multiplier is that figure against
+the first turn that cost anything. It is this project's whole argument reduced
+to one number, measured on your own session: the question you are about to ask
+costs nearly seven times what the same question cost ninety minutes ago.
+
+The multiplier appears once it passes 1.15x — below that it is noise, and a
+line that prints `1.0×` every turn is a line people stop reading. It goes
+yellow at 2x and red at 4x.
+
+Set `TOKENDIET_TURN=0` to keep a single line.
+
 ## Install
 
 ```sh
@@ -127,6 +149,7 @@ as possible.
 |---|---|---|
 | `TOKENDIET_WARN` | `150000` | Tokens at which the bar turns yellow |
 | `TOKENDIET_HIGH` | `350000` | Tokens at which it turns red |
+| `TOKENDIET_TURN` | `1` | Set to `0` to drop the per-turn second line |
 | `NO_COLOR` | unset | Set to anything to disable colour |
 
 Set them in the `statusLine` command itself if you want them scoped to it:
@@ -158,7 +181,12 @@ test framework needed.
 
 tokendiet makes no network calls and collects nothing. It reads the payload
 Claude Code hands it, shells out to `git` for the branch name, and prints a
-line. That's all it does.
+line.
+
+The per-turn line needs to remember the previous turn, so it keeps one small
+file per session — a running total and the last turn's delta — in your system
+temp directory under `tokendiet/`, pruned after three days. Nothing leaves your
+machine, and `TOKENDIET_TURN=0` stops it being written at all.
 
 ## License
 

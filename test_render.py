@@ -11,6 +11,7 @@ import os
 import pathlib
 import subprocess
 import sys
+import tempfile
 
 SCRIPT = pathlib.Path(__file__).with_name("tokendiet.py")
 VERBOSE = "-v" in sys.argv
@@ -79,6 +80,43 @@ check("fallback (325K)", {
 # Thresholds are configurable, and they are absolute token counts.
 check("env      (185K, WARN=200K)", payload(18.5),
       expect=["185K/1.0M"], absent=["/clear"], TOKENDIET_WARN="200000")
+
+# -- the turn line --------------------------------------------------------
+# It tracks state across renders, so it gets a scratch dir of its own. The
+# first render of a session has no previous turn to compare against.
+state = tempfile.mkdtemp()
+
+
+def turn(prompt_id, pct, cost, ms=600_000, **env):
+    return render({
+        "session_id": "test", "prompt_id": prompt_id,
+        "model": {"display_name": "Opus 5"},
+        "context_window": {"context_window_size": 1_000_000, "used_percentage": pct},
+        "cost": {"total_cost_usd": cost, "total_duration_ms": ms},
+    }, TMPDIR=state, **env)
+
+
+def expect(name, line, present=(), absent=()):
+    missing = [s for s in present if s not in line]
+    extra = [s for s in absent if s in line]
+    if missing or extra:
+        failures.append(f"{name}: missing {missing} unexpected {extra} in {line!r}")
+        print(f"FAIL  {name}\n      {line}")
+    else:
+        print(f"ok    {name}" + (f"\n      {line}" if VERBOSE else ""))
+
+
+expect("turn 1   (nothing to compare yet)", turn("p1", 5, 0.10), absent=["turn "])
+expect("turn 2   (first delta is the baseline)", turn("p2", 9, 0.25),
+       present=["turn +40K", "$0.15"], absent=["vs first"])
+expect("turn 3   (ratio appears)", turn("p3", 18, 0.60, ms=1_800_000),
+       present=["turn +90K", "$0.35", "2.3× vs first turn", "30m"])
+expect("re-render (same turn, same numbers)", turn("p3", 18, 0.60, ms=1_860_000),
+       present=["turn +90K", "$0.35", "2.3× vs first turn"])
+expect("turn 4   (growth, hours)", turn("p4", 40, 1.50, ms=3_600_000),
+       present=["6.0× vs first turn", "1h00m"])
+expect("opt-out  (TOKENDIET_TURN=0)", turn("p5", 62, 3.30, TOKENDIET_TURN="0"),
+       present=["620K/1.0M"], absent=["turn "])
 
 # Windows: stdout to a pipe uses the locale codepage, which has no bar glyphs.
 # Without the reconfigure in tokendiet.py this raises UnicodeEncodeError and the

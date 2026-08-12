@@ -126,6 +126,12 @@
   .meter .read { font-size: 15px; color: var(--muted); font-family: var(--serif); }
   .read em { color: var(--ink); font-style: normal; }
 
+  /* -- a still frame of the two-line bar -- */
+  .still { font-family: var(--mono); font-size: 13px; line-height: 1.95; background: var(--panel); border: 1px solid var(--rule); border-radius: 9px; padding: 16px 18px; margin-top: 26px; overflow-x: auto; white-space: nowrap; }
+  .s-dim { color: var(--faint); }
+  .s-ink { color: var(--ink); }
+  .s-crit { color: var(--crit); }
+
   /* -- config table -- */
   .tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
   .tbl th, .tbl td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
@@ -152,29 +158,54 @@
 
   <section aria-label="Demo">
     <div class="demo-frame">
-      <svg class="demo" xmlns="http://www.w3.org/2000/svg" width="800" height="152" viewBox="0 0 800 152" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" role="img" aria-label="A statusline filling up over a session: the context bar grows from 12K to 620K tokens and turns from green to yellow to red, prompting a /clear that resets it.">
-        <style>
-          .demo .f { opacity: 0; animation: tdshow 12s infinite; }
-          .demo .f0 { animation-delay: 0s } .demo .f1 { animation-delay: 2s } .demo .f2 { animation-delay: 4s }
-          .demo .f3 { animation-delay: 6s } .demo .f4 { animation-delay: 8s } .demo .f5 { animation-delay: 10s }
-          @keyframes tdshow { 0% { opacity: 1 } 16.66% { opacity: 1 } 16.67% { opacity: 0 } 100% { opacity: 0 } }
-          @media (prefers-reduced-motion: reduce) { .demo .f { animation: none; opacity: 0 } .demo .f4 { opacity: 1 } }
-          .demo text { font-size: 13px }
-          .demo .d-dim { fill: #6b7280 } .demo .d-txt { fill: #c0c6d4 } .demo .d-model { fill: #7aa2f7 }
-          .demo .d-green { fill: #3fb950 } .demo .d-yellow { fill: #d29922 } .demo .d-red { fill: #f85149 }
-          .demo .d-cap { font-size: 12px; fill: #6b7280; font-style: italic }
-        </style>
-        <rect x="0.5" y="0.5" width="799" height="151" rx="10" fill="#16181d" stroke="#2a2f3a"/>
-        <circle cx="24" cy="22" r="5.5" fill="#ff5f57"/><circle cx="44" cy="22" r="5.5" fill="#febc2e"/><circle cx="64" cy="22" r="5.5" fill="#28c840"/>
-        <text x="88" y="26" class="d-dim" font-size="11">claude code</text>
-        <line x1="1" y1="43" x2="799" y2="43" stroke="#2a2f3a"/>
-        <g class="f f0"><text x="24" y="86" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/myproject</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-green">░░░░░░░░░░</tspan><tspan class="d-txt"> 12K/1.0M</tspan><tspan class="d-dim"> · $0.18</tspan></text><text x="24" y="115" class="d-cap" xml:space="preserve">a fresh session — context is cheap here</text></g>
-        <g class="f f1"><text x="24" y="86" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/myproject</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-green">█░░░░░░░░░</tspan><tspan class="d-txt"> 104K/1.0M</tspan><tspan class="d-dim"> · $1.90</tspan></text><text x="24" y="115" class="d-cap" xml:space="preserve">every turn re-sends everything before it</text></g>
-        <g class="f f2"><text x="24" y="86" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/myproject</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-yellow">█░░░░░░░░░</tspan><tspan class="d-txt"> 185K/1.0M</tspan><tspan class="d-dim"> · $3.42 · </tspan><tspan class="d-yellow">◐ /clear when this task ends</tspan></text><text x="24" y="115" class="d-cap" xml:space="preserve">150K — still only 18% of the window, already the yellow zone</text></g>
-        <g class="f f3"><text x="24" y="86" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/myproject</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-yellow">███░░░░░░░</tspan><tspan class="d-txt"> 340K/1.0M</tspan><tspan class="d-dim"> · $9.10 · </tspan><tspan class="d-yellow">◐ /clear when this task ends</tspan></text><text x="24" y="115" class="d-cap" xml:space="preserve">every question now re-pays 340K tokens, however small the answer</text></g>
-        <g class="f f4"><text x="24" y="86" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/myproject</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-red">██████░░░░</tspan><tspan class="d-txt"> 620K/1.0M</tspan><tspan class="d-dim"> · $18.40 · </tspan><tspan class="d-red">⚠ /clear</tspan></text><text x="24" y="115" class="d-cap" xml:space="preserve">"half full" by the percentage — 3x the cost per turn</text></g>
-        <g class="f f5"><text x="24" y="86" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/myproject</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-green">░░░░░░░░░░</tspan><tspan class="d-txt"> 6K/1.0M</tspan><tspan class="d-dim"> · $0.04</tspan></text><text x="24" y="115" class="d-cap" xml:space="preserve">/clear — back to paying only for what this task needs</text></g>
-      </svg>
+      <svg class="demo" xmlns="http://www.w3.org/2000/svg" width="800" height="164" viewBox="0 0 800 164" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" role="img" aria-label="A Claude Code statusline filling up over a session. The context bar grows from 12K to 620K tokens, turning green, yellow then red, while a second line reports what each turn cost and how many times more that is than the first turn of the session.">
+  <style>
+    .demo .f { opacity: 0; animation: tdshow 12s infinite; }
+    .demo .f0 { animation-delay: 0s }
+    .demo .f1 { animation-delay: 2s }
+    .demo .f2 { animation-delay: 4s }
+    .demo .f3 { animation-delay: 6s }
+    .demo .f4 { animation-delay: 8s }
+    .demo .f5 { animation-delay: 10s }
+    @keyframes tdshow {
+      0%      { opacity: 1 }
+      16.66%  { opacity: 1 }
+      16.67%  { opacity: 0 }
+      100%    { opacity: 0 }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .demo .f { animation: none; opacity: 0 }
+      .demo .f4 { opacity: 1 }
+    }
+    .demo text { font-size: 13px }
+    .demo .d-dim { fill: #6b7280 }
+    .demo .d-txt { fill: #c0c6d4 }
+    .demo .d-model { fill: #7aa2f7 }
+    .demo .d-green { fill: #3fb950 }
+    .demo .d-yellow { fill: #d29922 }
+    .demo .d-red { fill: #f85149 }
+    .demo .d-cap { font-size: 12px; fill: #6b7280; font-style: italic }
+  </style>
+
+  <rect x="0.5" y="0.5" width="799" height="163" rx="10" fill="#16181d" stroke="#2a2f3a"/>
+  <circle cx="24" cy="22" r="5.5" fill="#ff5f57"/>
+  <circle cx="44" cy="22" r="5.5" fill="#febc2e"/>
+  <circle cx="64" cy="22" r="5.5" fill="#28c840"/>
+  <text x="88" y="26" class="d-dim" font-size="11">claude code</text>
+  <line x1="1" y1="43" x2="799" y2="43" stroke="#2a2f3a"/>
+
+  <g class="f f0"><text x="24" y="80" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/myproject</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-green">░░░░░░░░░░</tspan><tspan class="d-txt"> 12K/1.0M</tspan><tspan class="d-dim"> · $0.18</tspan></text><text x="24" y="131" class="d-cap" xml:space="preserve">a fresh session — context is cheap here</text></g>
+
+  <g class="f f1"><text x="24" y="80" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/myproject</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-green">█░░░░░░░░░</tspan><tspan class="d-txt"> 104K/1.0M</tspan><tspan class="d-dim"> · $1.90</tspan></text><text x="24" y="103" class="d-dim" xml:space="preserve">turn +18K · $0.21 · 6m</text><text x="24" y="131" class="d-cap" xml:space="preserve">every turn re-sends everything before it</text></g>
+
+  <g class="f f2"><text x="24" y="80" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/myproject</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-yellow">█░░░░░░░░░</tspan><tspan class="d-txt"> 185K/1.0M</tspan><tspan class="d-dim"> · $3.42 · </tspan><tspan class="d-yellow">◐ /clear when this task ends</tspan></text><text x="24" y="103" xml:space="preserve"><tspan class="d-dim">turn +40K · $0.35 · </tspan><tspan class="d-dim">1.7× vs first turn</tspan><tspan class="d-dim"> · 21m</tspan></text><text x="24" y="131" class="d-cap" xml:space="preserve">150K — still only 18% of the window, already the yellow zone</text></g>
+
+  <g class="f f3"><text x="24" y="80" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/myproject</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-yellow">███░░░░░░░</tspan><tspan class="d-txt"> 340K/1.0M</tspan><tspan class="d-dim"> · $9.10 · </tspan><tspan class="d-yellow">◐ /clear when this task ends</tspan></text><text x="24" y="103" xml:space="preserve"><tspan class="d-dim">turn +85K · $0.72 · </tspan><tspan class="d-yellow">3.4× vs first turn</tspan><tspan class="d-dim"> · 48m</tspan></text><text x="24" y="131" class="d-cap" xml:space="preserve">the same question, three and a half times the price</text></g>
+
+  <g class="f f4"><text x="24" y="80" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/myproject</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-red">██████░░░░</tspan><tspan class="d-txt"> 620K/1.0M</tspan><tspan class="d-dim"> · $18.40 · </tspan><tspan class="d-red">⚠ /clear</tspan></text><text x="24" y="103" xml:space="preserve"><tspan class="d-dim">turn +160K · $1.40 · </tspan><tspan class="d-red">6.7× vs first turn</tspan><tspan class="d-dim"> · 1h34m</tspan></text><text x="24" y="131" class="d-cap" xml:space="preserve">"half full" by the percentage — and every question costs 6.7x</text></g>
+
+  <g class="f f5"><text x="24" y="80" xml:space="preserve"><tspan class="d-model">Opus 5</tspan><tspan class="d-dim"> · </tspan><tspan class="d-txt">~/myproject</tspan><tspan class="d-dim"> · main* · </tspan><tspan class="d-green">░░░░░░░░░░</tspan><tspan class="d-txt"> 6K/1.0M</tspan><tspan class="d-dim"> · $0.04</tspan></text><text x="24" y="131" class="d-cap" xml:space="preserve">/clear — back to paying only for what this task needs</text></g>
+</svg>
     </div>
     <p class="demo-note">One session, start to finish. Green under 150K tokens, yellow past it, red past 350K.</p>
   </section>
@@ -232,6 +263,14 @@
   </section>
 
   <section>
+    <h2>What the turn you just took cost</h2>
+    <p>The bar tells you where the session stands. The second line tells you what it means for the next thing you type — the turn that just finished, set against the first turn of the session.</p>
+    <div class="still"><span class="s-dim">Opus 5 · ~/myproject · main* · </span><span class="s-crit">██████░░░░</span><span class="s-ink"> 620K/1.0M</span><span class="s-dim"> · $18.40 · </span><span class="s-crit">⚠ /clear</span><br><span class="s-dim">turn +160K · $1.40 · </span><span class="s-crit">6.7× vs first turn</span><span class="s-dim"> · 1h34m</span></div>
+    <p style="margin-top: 26px;">Nothing there is modelled or predicted. A turn's cost is the difference between two readings of the session total, and the multiplier is that figure measured against the first turn that cost anything. It is the argument on this page reduced to a single number, taken from your own session: the question you are about to ask costs nearly seven times what the same question cost ninety minutes ago.</p>
+    <p>The multiplier stays hidden until it passes 1.15x — a line that prints <code>1.0×</code> every turn is a line people stop reading.</p>
+  </section>
+
+  <section>
     <h2>It costs nothing to run</h2>
     <p>A statusline is drawn by your terminal. It never enters the conversation, so watching your spend does not add to it.</p>
     <p>The alternative would be a hook injecting a warning into the context on every prompt — paying for that warning in input tokens each turn, out of exactly the budget it exists to protect. And no automation can run <code>/clear</code> for you: it's a harness command, not something a hook or a skill can invoke. Whatever you build, a human makes the call. The job is to put the number in front of that human as cheaply as possible.</p>
@@ -245,6 +284,7 @@
         <tbody>
           <tr><td>TOKENDIET_WARN</td><td>150000</td><td>Tokens at which the bar turns yellow</td></tr>
           <tr><td>TOKENDIET_HIGH</td><td>350000</td><td>Tokens at which it turns red</td></tr>
+          <tr><td>TOKENDIET_TURN</td><td>1</td><td>Set to <code>0</code> to drop the per-turn second line</td></tr>
           <tr><td>NO_COLOR</td><td>unset</td><td>Set to anything to drop the colour</td></tr>
         </tbody>
       </table>
