@@ -12,9 +12,9 @@ or the short version at **[mcancellotti.github.io/tokendiet](https://mcancellott
 In plain text, the three states:
 
 ```
-Opus 5 · ~/erpilot · main* · ░░░░░░░░░░ 40K/1.0M · $0.62
-Opus 5 · ~/erpilot · main* · █░░░░░░░░░ 185K/1.0M · $3.42 · ◐ /clear when this task ends
-Opus 5 · ~/erpilot · main* · ██████░░░░ 620K/1.0M · $18.40 · ⚠ /clear
+Opus 5 · ~/myproject · main* · ░░░░░░░░░░ 40K/1.0M · $0.62
+Opus 5 · ~/myproject · main* · █░░░░░░░░░ 185K/1.0M · $3.42 · ◐ /clear when this task ends
+Opus 5 · ~/myproject · main* · ██████░░░░ 620K/1.0M · $18.40 · ⚠ /clear
 ```
 
 Green under 150K tokens, yellow past it, red past 350K. Model, working
